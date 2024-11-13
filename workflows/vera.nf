@@ -255,19 +255,20 @@ workflow VERA {
 
     ch_mixed_for_grep = SEQKIT_SEQ.out.fastx.combine(
         PARSE_MMSEQS_PROTEIN_RESULTS.out.as_list, by: 0
-    )
-
-    ch_fastx = ch_mixed_for_grep.map {
-        meta, contigs, list -> [meta, contigs]
+    ).filter {
+        it -> it[2].countLines() > 0
     }
-    ch_list = ch_mixed_for_grep.map {
-        meta, contigs, list -> [meta, list]
+
+    ch_fastx = ch_mixed_for_grep.multiMap {
+        it -> 
+            fastx: [it[0], it[1]]
+            list: [it[2]]
     }
 
     // извлекаем последовательности, которые удалось характеризовать как вирусные
     SEQKIT_GREP_FOR_NUCL (
-        ch_fastx,
-        ch_list
+        ch_fastx.fastx,
+        ch_fastx.list
     )
     ch_versions = ch_versions.mix(SEQKIT_GREP_FOR_NUCL.out.versions.first())
 
@@ -390,14 +391,19 @@ workflow VERA {
 
     ch_final_grep = ch_potential_viruses.combine(
         CREATE_EXTENDED_TABLE.out.as_list, by: 0
-    )
+    ).filter {
+        it -> it[2].countLines() > 0
+    }.multiMap {
+        it -> 
+            fastx: [it[0], it[1]]
+            list: [it[2]]
+    }
 
     SEQKIT_GREP_FOR_EXTENSION (
-        ch_final_grep.map { it -> [it[0], it[1]]},
-        ch_final_grep.map { it -> [it[0], it[2]]}
+        ch_final_grep.fastx,
+        ch_final_grep.list
     )
     ch_versions = ch_versions.mix(SEQKIT_GREP_FOR_EXTENSION.out.versions.first())
-    ch_potential_viruses = SEQKIT_GREP_FOR_EXTENSION.out.filter.filter {meta, contig -> contig.size() > 0 }
 
     // тут добавляем увеличение контигов
 

@@ -12,8 +12,8 @@ process CREATE_EXTENDED_TABLE {
 
     output:
     tuple val(meta), path('*_extended_table.tsv'), emit: table
-    path('*_for_extension.txt')                 , emit: as_list
-    path('*_two_col_coverage.tsv')                 , emit: two_col_coverage
+    tuple val(meta), path('*_for_extension.txt')                 , emit: as_list
+    tuple val(meta), path('*_two_col_coverage.tsv')                 , emit: two_col_coverage
     path "versions.yml"                          , emit: versions
 
     when:

@@ -12,7 +12,7 @@ process PARSE_MMSEQS_PROTEIN_RESULTS {
 
     output:
     tuple val(meta), path('*_selected.tsv'), emit: table
-    path('*_selected.txt')                 , emit: as_list
+    tuple val(meta), path('*_selected.txt')                 , emit: as_list
     path "versions.yml"                          , emit: versions
 
     when:
